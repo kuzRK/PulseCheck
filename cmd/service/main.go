@@ -9,11 +9,12 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Fprintln(os.Stderr, "Запуск: go run main.go https://example.com")
+		fmt.Fprintln(os.Stderr, "Usage: go run ./cmd/service <URL>")
 		os.Exit(2)
 	}
 
 	address := os.Args[1]
+
 	client := http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -23,18 +24,18 @@ func main() {
 	elapsed := time.Since(start)
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Ошибка проверки:", err)
+		fmt.Fprintln(os.Stderr, "Check failed:", err)
 		os.Exit(1)
 	}
 	defer response.Body.Close()
 
-	fmt.Println("Адрес:", address)
-	fmt.Println("HTTP-статус:", response.Status)
-	fmt.Printf("Время до получения заголовков: %d мс\n", elapsed.Milliseconds())
+	fmt.Println("URL:", address)
+	fmt.Println("HTTP status:", response.Status)
+	fmt.Printf("Time to response headers: %d ms\n", elapsed.Milliseconds())
 
 	if response.StatusCode >= 200 && response.StatusCode < 300 {
-		fmt.Println("Результат: успешный HTTP-ответ")
+		fmt.Println("Result: successful HTTP response")
 	} else {
-		fmt.Println("Результат: сервер ответил, но статус требует проверки")
+		fmt.Println("Result: unexpected HTTP status")
 	}
 }
