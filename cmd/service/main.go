@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -8,18 +9,39 @@ import (
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "Usage: go run ./cmd/service <URL> [URL...]")
+	timeout := flag.Duration(
+		"timeout",
+		10*time.Second,
+		"Maximum wait per URL",
+	)
+
+	flag.Usage = func() {
+		fmt.Fprintln(os.Stderr,
+			"Usage: go run ./cmd/service [flags] <URL> [URL...]")
+		flag.PrintDefaults()
+	}
+
+	flag.Parse()
+
+	if *timeout <= 0 {
+		fmt.Fprintln(os.Stderr, "Timeout must be greater than zero")
+		os.Exit(2)
+	}
+
+	addresses := flag.Args()
+
+	if len(addresses) == 0 {
+		flag.Usage()
 		os.Exit(2)
 	}
 
 	client := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: *timeout,
 	}
 
 	allOK := true
 
-	for _, address := range os.Args[1:] {
+	for _, address := range addresses {
 		if !checkURL(client, address) {
 			allOK = false
 		}
